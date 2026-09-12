@@ -1,3 +1,5 @@
+backend/models/
+backend/artifacts/
 # Logs
 logs
 *.log
@@ -10,10 +12,13 @@ lerna-debug.log*
 node_modules
 dist
 dist-ssr
+.venv/
 *.local
 .env
 .env.*
 !.env.example
+__pycache__/
+*.py[cod]
 
 # Editor directories and files
 .vscode/*

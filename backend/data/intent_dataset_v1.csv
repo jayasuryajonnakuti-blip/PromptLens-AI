@@ -1,0 +1,97 @@
+text,intent
+"Write a Python function that reads a CSV file and calculates the average sales.",CODING
+"Debug this JavaScript code and explain why the asynchronous request fails.",CODING
+"Create a REST API endpoint in FastAPI for uploading a document.",CODING
+"Refactor this SQL query to improve its execution time.",CODING
+"Build a Python script that renames image files based on their creation date.",CODING
+"Show me how to add unit tests for a React component.",CODING
+"Implement a binary search tree in Java and include traversal methods.",CODING
+"Fix the type errors in this TypeScript interface and function.",CODING
+"Explain photosynthesis to a high school student using a simple analogy.",EDUCATION
+"Teach me the difference between mitosis and meiosis with a short lesson.",EDUCATION
+"Create a five-question quiz about the water cycle for middle school learners.",EDUCATION
+"Describe the causes of the French Revolution for a beginner.",EDUCATION
+"Help me design a lesson plan for introducing fractions to children.",EDUCATION
+"Explain Newton's laws with examples that a physics student can follow.",EDUCATION
+"Give feedback on this study schedule and suggest a better learning sequence.",EDUCATION
+"What are the main concepts a new programmer should learn about recursion?",EDUCATION
+"Find peer-reviewed evidence about the effects of sleep on memory.",RESEARCH
+"Compare recent academic approaches to reducing plastic pollution.",RESEARCH
+"Design a research question and methodology for studying remote work.",RESEARCH
+"Identify reliable primary sources about early space exploration.",RESEARCH
+"Summarize the current literature on battery recycling and cite the sources.",RESEARCH
+"Analyze these survey results as part of a qualitative research project.",RESEARCH
+"Suggest search terms for a systematic review of childhood nutrition.",RESEARCH
+"What evidence supports the hypothesis that urban trees reduce heat?",RESEARCH
+"Draft a professional email requesting a meeting with a new client.",WRITING
+"Rewrite this paragraph so the tone is concise and confident.",WRITING
+"Create an outline for a personal essay about moving to a new city.",WRITING
+"Help me write a polite response to a customer complaint.",WRITING
+"Edit this cover letter for clarity and stronger transitions.",WRITING
+"Compose a short announcement for our community newsletter.",WRITING
+"Give me three alternative headlines for this article.",WRITING
+"Write a formal project proposal introduction for a nonprofit.",WRITING
+"Summarize the key decisions from these meeting notes.",SUMMARIZATION
+"Condense this long article into five important bullet points.",SUMMARIZATION
+"Give me a one-paragraph executive summary of the report.",SUMMARIZATION
+"Extract the main arguments and supporting evidence from this paper.",SUMMARIZATION
+"Create a brief synopsis of this chapter without adding new details.",SUMMARIZATION
+"Reduce this transcript to its action items and open questions.",SUMMARIZATION
+"Summarize the following news coverage in neutral language.",SUMMARIZATION
+"Turn these notes into a concise overview for someone who missed the meeting.",SUMMARIZATION
+"Translate this product description from English into Spanish.",TRANSLATION
+"Convert the following French email into natural English.",TRANSLATION
+"Translate these travel instructions into Japanese and preserve the headings.",TRANSLATION
+"How would a native German speaker phrase this customer-service message?",TRANSLATION
+"Translate the user interface labels into Portuguese without changing the variables.",TRANSLATION
+"Provide an accurate Arabic translation of this short announcement.",TRANSLATION
+"Translate this Chinese paragraph into English and explain any cultural nuance.",TRANSLATION
+"Localize this English slogan for a Korean audience.",TRANSLATION
+"Create a quarterly budget forecast for a small consulting company.",BUSINESS
+"Write a SWOT analysis for a subscription software business.",BUSINESS
+"Prepare discussion questions for a meeting about operational risk.",BUSINESS
+"Explain how to improve the onboarding process for new employees.",BUSINESS
+"Compare the costs and benefits of outsourcing our customer support.",BUSINESS
+"Draft a policy for approving expenses across regional offices.",BUSINESS
+"Suggest key metrics for monitoring a retail division's performance.",BUSINESS
+"Build a strategic agenda for a leadership planning workshop.",BUSINESS
+"Create a social media campaign to launch our sustainable water bottle.",MARKETING
+"Write three email subject lines for a weekend promotion.",MARKETING
+"Define the target audience and value proposition for this mobile app.",MARKETING
+"Develop a content calendar for a local fitness studio.",MARKETING
+"Suggest search-engine keywords for an online language course.",MARKETING
+"Rewrite this landing page copy to improve conversion without making unsupported claims.",MARKETING
+"Plan an influencer outreach campaign for a new skincare product.",MARKETING
+"Give me a brand voice guide for a friendly neighborhood bakery.",MARKETING
+"Analyze monthly sales data and identify the products with declining revenue.",DATA_ANALYSIS
+"Write SQL to group customer transactions by month and region.",DATA_ANALYSIS
+"Explain how to clean missing values in this pandas DataFrame.",DATA_ANALYSIS
+"Find the correlation between advertising spend and conversion rate in this dataset.",DATA_ANALYSIS
+"Create a dashboard specification for tracking website traffic and retention.",DATA_ANALYSIS
+"Calculate the median and standard deviation for each numeric column.",DATA_ANALYSIS
+"Suggest visualizations for comparing these experiment results.",DATA_ANALYSIS
+"Detect unusual records in this table and explain a reproducible method.",DATA_ANALYSIS
+"Invent a mysterious short story set in a lighthouse during a storm.",CREATIVE
+"Write a humorous dialogue between a cat and a time traveler.",CREATIVE
+"Generate five imaginative names for a floating city.",CREATIVE
+"Create a poetic description of autumn in an abandoned garden.",CREATIVE
+"Develop a fantasy character who can communicate with rivers.",CREATIVE
+"Write a surprising ending for this science-fiction story.",CREATIVE
+"Brainstorm playful plot ideas for a children's adventure book.",CREATIVE
+"Compose a lyrical opening scene for a story about memory and music.",CREATIVE
+"Generate an image of a modern cabin beside a misty mountain lake.",IMAGE_GENERATION
+"Create a photorealistic product image of a red running shoe on a clean studio background.",IMAGE_GENERATION
+"Design a watercolor illustration of a fox reading under an old oak tree.",IMAGE_GENERATION
+"Produce a cinematic concept-art scene of a space station above an ocean planet.",IMAGE_GENERATION
+"Make a flat vector icon set for a weather application.",IMAGE_GENERATION
+"Create a portrait in the style of a bright editorial fashion photograph.",IMAGE_GENERATION
+"Generate a pixel-art village at night with warm windows and falling snow.",IMAGE_GENERATION
+"Render a detailed architectural visualization of a library with natural light.",IMAGE_GENERATION
+"What are some practical ways to organize my daily tasks?",GENERAL
+"Help me decide whether to repair or replace an old laptop.",GENERAL
+"Give me a checklist for preparing for a weekend trip.",GENERAL
+"Explain the difference between a warranty and a guarantee.",GENERAL
+"Suggest healthy dinner ideas using ingredients I already have.",GENERAL
+"How can I make this explanation easier to understand?",GENERAL
+"List questions I should ask before signing a rental agreement.",GENERAL
+"What should I consider when choosing a new hobby?",GENERAL
