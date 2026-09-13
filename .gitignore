@@ -28,5 +28,13 @@ __pycache__/
 *.suo
 *.ntvs*
 *.njsproj
-*.sln
 *.sw?
+
+# Database
+*.db
+*.sqlite
+*.sqlite3
+backend/data/*.db
+backend/data/*.sqlite
+backend/data/*.sqlite3
+!backend/data/*.csv

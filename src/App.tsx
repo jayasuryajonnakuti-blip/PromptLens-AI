@@ -1,152 +1,239 @@
-import { useState } from 'react'
-import './App.css'
+import { useState, useEffect } from 'react'
+import { Header } from './components/Header'
+import { PromptEditor } from './components/PromptEditor'
+import { ScoreCard } from './components/ScoreCard'
+import { ComparisonView } from './components/ComparisonView'
+import { IterationTimeline } from './components/IterationTimeline'
+import { CriticValidatorDetails } from './components/CriticValidatorDetails'
+import { HistoryView } from './components/HistoryView'
+import { runAgent, checkHealth, listRuns } from './services/api'
+import type { AgentResponse, OptimizationMode } from './types/agent'
+import { Sparkles } from 'lucide-react'
 
-const navigation = [
-  { label: 'Dashboard', icon: 'grid' },
-  { label: 'Prompt Analyzer', icon: 'scan' },
-  { label: 'Optimizer', icon: 'wand' },
-  { label: 'Playground', icon: 'terminal' },
-  { label: 'History', icon: 'clock' },
-  { label: 'Saved Prompts', icon: 'bookmark' },
-  { label: 'Templates', icon: 'layers' },
-  { label: 'Analytics', icon: 'chart' },
-  { label: 'Settings', icon: 'settings' },
-]
+export function App() {
+  const [activeTab, setActiveTab] = useState<'workspace' | 'history'>('workspace')
+  const [isDark, setIsDark] = useState(() => {
+    try {
+      const saved = localStorage.getItem('promptlens_theme')
+      return saved ? saved === 'dark' : false
+    } catch {
+      return false
+    }
+  })
 
-function Icon({ name }: { name: string }) {
-  const paths: Record<string, string> = {
-    grid: 'M4 4h6v6H4zM14 4h6v6h-6zM4 14h6v6H4zM14 14h6v6h-6z',
-    scan: 'M4 8V5a1 1 0 0 1 1-1h3M16 4h3a1 1 0 0 1 1 1v3M20 16v3a1 1 0 0 1-1 1h-3M8 20H5a1 1 0 0 1-1-1v-3M8 12h8',
-    wand: 'm15 4 5 5M13 6l5 5M4 20l2.5-6.5L16 4l4 4-9.5 9.5L4 20Z',
-    terminal: 'm7 8 4 4-4 4M13 16h4',
-    clock: 'M12 7v5l3 2M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z',
-    bookmark: 'M6 4a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v18l-6-4-6 4V4Z',
-    layers: 'm12 3 9 5-9 5-9-5 9-5ZM3 12l9 5 9-5M3 16l9 5 9-5',
-    chart: 'M4 19V5M4 19h16M8 16v-3M12 16V8M16 16v-6',
-    settings: 'M12 15.5a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7ZM19.4 15a1.7 1.7 0 0 0 .3 1.9l.1.1-1.8 1.8-.1-.1a1.7 1.7 0 0 0-1.9-.3 1.7 1.7 0 0 0-1 1.6v.2h-2.6V20a1.7 1.7 0 0 0-1-1.6 1.7 1.7 0 0 0-1.9.3l-.1.1-1.8-1.8.1-.1a1.7 1.7 0 0 0 .3-1.9 1.7 1.7 0 0 0-1.6-1H7.2v-2.6h.2a1.7 1.7 0 0 0 1.6-1 1.7 1.7 0 0 0-.3-1.9l-.1-.1 1.8-1.8.1.1a1.7 1.7 0 0 0 1.9.3 1.7 1.7 0 0 0 1-1.6V5h2.6v.2a1.7 1.7 0 0 0 1 1.6 1.7 1.7 0 0 0 1.9-.3l.1-.1 1.8 1.8-.1.1a1.7 1.7 0 0 0-.3 1.9 1.7 1.7 0 0 0 1.6 1h.2v2.6H21a1.7 1.7 0 0 0-1.6 1Z',
-    sun: 'M12 3V1M12 23v-2M4.2 4.2 2.8 2.8M21.2 21.2l-1.4-1.4M3 12H1M23 12h-2M4.2 19.8l-1.4 1.4M21.2 2.8l-1.4 1.4M17 12a5 5 0 1 1-10 0 5 5 0 0 1 10 0Z',
-    moon: 'M20.5 15.5A8.5 8.5 0 0 1 8.5 3.5 8.5 8.5 0 1 0 20.5 15.5Z',
-    menu: 'M4 7h16M4 12h16M4 17h16',
-    arrow: 'M5 12h14M13 6l6 6-6 6',
+  // Prompt Editor State
+  const [prompt, setPrompt] = useState('')
+  const [mode, setMode] = useState<OptimizationMode>('balanced')
+  const [maxIterations, setMaxIterations] = useState(3)
+
+  // Execution State
+  const [isLoading, setIsLoading] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+  const [response, setResponse] = useState<AgentResponse | null>(null)
+
+  // Backend Health & History Count
+  const [backendHealthy, setBackendHealthy] = useState<boolean | null>(null)
+  const [historyCount, setHistoryCount] = useState<number>(0)
+
+  // Sync theme
+  useEffect(() => {
+    try {
+      localStorage.setItem('promptlens_theme', isDark ? 'dark' : 'light')
+      if (isDark) {
+        document.documentElement.classList.add('theme-dark')
+      } else {
+        document.documentElement.classList.remove('theme-dark')
+      }
+    } catch {
+      // Ignore storage errors
+    }
+  }, [isDark])
+
+  // Check backend health & count runs asynchronously
+  useEffect(() => {
+    let active = true
+    checkHealth()
+      .then(() => {
+        if (active) {
+          setBackendHealthy(true)
+          listRuns(0, 1)
+            .then((data) => {
+              if (active) setHistoryCount(data.total || 0)
+            })
+            .catch(() => {})
+        }
+      })
+      .catch(() => {
+        if (active) setBackendHealthy(false)
+      })
+    return () => {
+      active = false
+    }
+  }, [])
+
+  // Execute Agent Loop
+  const handleAnalyzeAndOptimize = async () => {
+    if (!prompt.trim() || isLoading) return
+    setIsLoading(true)
+    setError(null)
+    try {
+      const result = await runAgent(prompt, mode, maxIterations)
+      setResponse(result)
+      // Increment history count optimistically
+      setHistoryCount((prev) => prev + 1)
+    } catch (err: unknown) {
+      const msg =
+        err instanceof Error
+          ? err.message
+          : 'Failed to communicate with the PromptLens Agent Loop.'
+      setError(msg)
+    } finally {
+      setIsLoading(false)
+    }
+  }
+
+  const handleSelectHistoryRun = (runResponse: AgentResponse) => {
+    setResponse(runResponse)
+    setPrompt(runResponse.original_prompt)
+    setActiveTab('workspace')
   }
 
   return (
-    <svg className="icon" viewBox="0 0 24 24" aria-hidden="true">
-      <path d={paths[name]} />
-    </svg>
-  )
-}
+    <div className={`min-h-screen flex flex-col bg-[var(--bg-canvas)] text-[var(--text-primary)] ${isDark ? 'theme-dark' : ''}`}>
+      {/* Top Navigation */}
+      <Header
+        activeTab={activeTab}
+        setActiveTab={setActiveTab}
+        isDark={isDark}
+        setIsDark={setIsDark}
+        backendHealthy={backendHealthy}
+        historyCount={historyCount}
+      />
 
-function App() {
-  const [isDark, setIsDark] = useState(false)
-  const [isSidebarOpen, setIsSidebarOpen] = useState(false)
+      {/* Main Container */}
+      <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8 flex flex-col gap-8">
+        {activeTab === 'history' ? (
+          /* History View */
+          <HistoryView onSelectRun={handleSelectHistoryRun} />
+        ) : (
+          /* Workspace View */
+          <div className="flex flex-col gap-8">
+            {/* Hero / Identity Section (Shown prominently when no result, compact when result present) */}
+            {!response && (
+              <div className="relative overflow-hidden rounded-3xl border border-[var(--hero-border)] bg-[var(--hero-bg)] p-8 sm:p-12 text-[var(--hero-text)] shadow-xl">
+                <div className="max-w-2xl relative z-10">
+                  <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full text-[11px] font-bold uppercase tracking-wider bg-indigo-500/10 border border-indigo-500/20 text-indigo-300 mb-4">
+                    <Sparkles className="w-3.5 h-3.5 text-indigo-400" />
+                    <span>Autonomous Multi-Turn Agent Loop</span>
+                  </div>
+                  <h1 className="text-3xl sm:text-5xl font-extrabold tracking-tight leading-[1.1] mb-4">
+                    See what your prompt <em className="not-italic text-indigo-400">is missing.</em>
+                  </h1>
+                  <p className="text-base sm:text-lg text-[var(--hero-muted)] leading-relaxed mb-6 font-normal">
+                    Analyze. Improve. Test. Master your prompts with our bounded 4-stage agent pipeline: Analyzer, Optimizer, Critic, and Validator.
+                  </p>
+                  <div className="flex flex-wrap items-center gap-4 text-xs text-[var(--hero-muted)] font-mono">
+                    <span className="flex items-center gap-1.5">
+                      <span className="w-2 h-2 rounded-full bg-emerald-400" /> Local LLM Integration
+                    </span>
+                    <span className="flex items-center gap-1.5">
+                      <span className="w-2 h-2 rounded-full bg-indigo-400" /> SQLite Persistence
+                    </span>
+                    <span className="flex items-center gap-1.5">
+                      <span className="w-2 h-2 rounded-full bg-amber-400" /> Intent & Safety Verified
+                    </span>
+                  </div>
+                </div>
 
-  return (
-    <div className={`app-shell ${isDark ? 'theme-dark' : ''}`}>
-      <aside className={`sidebar ${isSidebarOpen ? 'sidebar-open' : ''}`}>
-        <div className="brand-lockup">
-          <div className="brand-mark" aria-hidden="true">P</div>
-          <div>
-            <span className="brand-name">PromptLens</span>
-            <span className="brand-type">AI workspace</span>
+                {/* Decorative Grid Effect */}
+                <div
+                  className="absolute right-0 top-0 w-1/2 h-full opacity-30 pointer-events-none hidden md:block"
+                  style={{
+                    backgroundImage:
+                      'radial-gradient(circle, rgba(99,102,241,0.3) 1px, transparent 1px)',
+                    backgroundSize: '24px 24px',
+                  }}
+                />
+              </div>
+            )}
+
+            {/* Prompt Input & Execution */}
+            <section aria-label="Prompt Input">
+              <PromptEditor
+                prompt={prompt}
+                setPrompt={setPrompt}
+                mode={mode}
+                setMode={setMode}
+                maxIterations={maxIterations}
+                setMaxIterations={setMaxIterations}
+                onSubmit={handleAnalyzeAndOptimize}
+                isLoading={isLoading}
+                error={error}
+                setError={setError}
+              />
+            </section>
+
+            {/* Live Agent Results Display */}
+            {response && (
+              <section aria-label="Agent Results" className="flex flex-col gap-6 animate-fadeIn">
+                {/* Result Heading */}
+                <div className="flex items-center justify-between">
+                  <div>
+                    <span className="text-[10px] font-extrabold uppercase tracking-widest text-indigo-500 block mb-1">
+                      Execution Result
+                    </span>
+                    <h2 className="text-xl font-bold tracking-tight text-[var(--text-primary)]">
+                      Optimized Prompt & Validation Report
+                    </h2>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setResponse(null)
+                      window.scrollTo({ top: 0, behavior: 'smooth' })
+                    }}
+                    className="text-xs font-semibold text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition-colors"
+                  >
+                    Start New Analysis →
+                  </button>
+                </div>
+
+                {/* Score & Validation Badge Card */}
+                <ScoreCard response={response} />
+
+                {/* Original vs Optimized Prompt Comparison */}
+                <ComparisonView response={response} />
+
+                {/* Bounded Agent Loop Iteration Timeline */}
+                {response.iterations && response.iterations.length > 0 && (
+                  <IterationTimeline iterations={response.iterations} />
+                )}
+
+                {/* Critic Feedback & Validator Findings */}
+                <CriticValidatorDetails response={response} />
+              </section>
+            )}
+          </div>
+        )}
+      </main>
+
+      {/* Product Footer */}
+      <footer className="w-full border-t border-[var(--border)] bg-[var(--bg-card)] py-6 mt-auto">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-[var(--text-muted)]">
+          <div className="flex items-center gap-2">
+            <span className="font-bold text-[var(--text-primary)]">PromptLens AI</span>
+            <span>•</span>
+            <span>Production Prompt Intelligence Pipeline</span>
+          </div>
+          <div className="flex items-center gap-4">
+            <span>Deterministic spaCy NLP</span>
+            <span>•</span>
+            <span>Local Quality ML</span>
+            <span>•</span>
+            <span>Bounded Agent Loop</span>
           </div>
         </div>
-
-        <nav className="primary-nav" aria-label="Primary navigation">
-          <span className="nav-label">Workspace</span>
-          {navigation.slice(0, 4).map((item) => (
-            <button
-              className={`nav-item ${item.label === 'Dashboard' ? 'active' : ''}`}
-              key={item.label}
-              type="button"
-              onClick={() => setIsSidebarOpen(false)}
-            >
-              <Icon name={item.icon} />
-              <span>{item.label}</span>
-            </button>
-          ))}
-          <span className="nav-label nav-label-secondary">Library</span>
-          {navigation.slice(4, 8).map((item) => (
-            <button className="nav-item" key={item.label} type="button" onClick={() => setIsSidebarOpen(false)}>
-              <Icon name={item.icon} />
-              <span>{item.label}</span>
-            </button>
-          ))}
-        </nav>
-
-        <div className="sidebar-footer">
-          <button className="nav-item" type="button" onClick={() => setIsSidebarOpen(false)}>
-            <Icon name="settings" />
-            <span>Settings</span>
-          </button>
-          <div className="workspace-card">
-            <span className="workspace-status"></span>
-            <div>
-              <span className="workspace-title">Personal workspace</span>
-              <span className="workspace-caption">Local foundation</span>
-            </div>
-            <span className="workspace-menu">•••</span>
-          </div>
-        </div>
-      </aside>
-
-      {isSidebarOpen && <button className="sidebar-backdrop" type="button" aria-label="Close navigation" onClick={() => setIsSidebarOpen(false)} />}
-
-      <div className="main-shell">
-        <header className="topbar">
-          <div className="topbar-left">
-            <button className="icon-button mobile-menu" type="button" aria-label="Open navigation" onClick={() => setIsSidebarOpen(true)}>
-              <Icon name="menu" />
-            </button>
-            <div className="breadcrumb"><span>Workspace</span><span className="breadcrumb-divider">/</span><strong>Dashboard</strong></div>
-          </div>
-          <div className="topbar-actions">
-            <span className="status-indicator"><span></span>All systems normal</span>
-            <button className="icon-button" type="button" aria-label={`Switch to ${isDark ? 'light' : 'dark'} theme`} onClick={() => setIsDark(!isDark)}>
-              <Icon name={isDark ? 'sun' : 'moon'} />
-            </button>
-            <button className="avatar" type="button" aria-label="Open profile menu">JD</button>
-          </div>
-        </header>
-
-        <main className="content-area">
-          <div className="content-heading">
-            <div>
-              <span className="eyebrow">Good morning, Jordan</span>
-              <h1>Build prompts with clarity.</h1>
-              <p className="heading-copy">A focused workspace for turning rough ideas into reliable instructions.</p>
-            </div>
-            <button className="button button-secondary" type="button"><span>⌘</span> Quick search</button>
-          </div>
-
-          <section className="hero-panel" aria-labelledby="hero-title">
-            <div className="hero-copy">
-              <div className="hero-kicker"><span className="kicker-dot"></span>Prompt intelligence, without the noise</div>
-              <h2 id="hero-title">See what your prompt<br /><em>is missing.</em></h2>
-              <p>Build prompts that work.</p>
-              <button className="button button-primary" type="button">Analyze Prompt <Icon name="arrow" /></button>
-            </div>
-            <div className="hero-grid" aria-hidden="true">
-              <div className="grid-orbit orbit-one"></div>
-              <div className="grid-orbit orbit-two"></div>
-              <div className="signal-card signal-card-top"><span className="signal-line"></span><span>Intent</span><strong>Clear</strong></div>
-              <div className="signal-card signal-card-bottom"><span className="signal-line signal-line-muted"></span><span>Structure</span><strong>Ready</strong></div>
-              <div className="hero-spark">✦</div>
-            </div>
-          </section>
-
-          <section className="empty-section" aria-labelledby="recent-title">
-            <div className="section-heading"><div><span className="eyebrow">Your workspace</span><h2 id="recent-title">Recent prompts</h2></div><button className="text-button" type="button">View history <Icon name="arrow" /></button></div>
-            <div className="empty-card">
-              <div className="empty-icon"><Icon name="scan" /></div>
-              <h3>Your prompt history will appear here</h3>
-              <p>Start with an analysis to build a clearer, more capable prompt.</p>
-              <button className="button button-tertiary" type="button">Create your first prompt <Icon name="arrow" /></button>
-            </div>
-          </section>
-        </main>
-        <footer className="app-footer"><span>PromptLens AI</span><span>Foundation workspace <b></b> v0.1</span></footer>
-        </div>
+      </footer>
     </div>
   )
 }

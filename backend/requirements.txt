@@ -3,3 +3,4 @@ uvicorn[standard]
 spacy>=3.8,<4.0
 scikit-learn>=1.5,<2.0
 sentence-transformers>=5.0,<6.0
+sqlalchemy>=2.0,<3.0
